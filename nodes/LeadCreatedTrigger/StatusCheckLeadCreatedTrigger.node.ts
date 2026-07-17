@@ -5,22 +5,23 @@ import {
 	INodeTypeDescription,
 	IWebhookResponseData,
 	NodeOperationError,
+	NodeConnectionTypes,
 } from 'n8n-workflow';
 
-export class LeadUpdatedTrigger implements INodeType {
+export class StatusCheckLeadCreatedTrigger implements INodeType {
 	description: INodeTypeDescription = {
-		displayName: 'Status Check Lead Updated Trigger',
-		name: 'statusCheckLeadUpdatedTrigger',
+		displayName: 'Status Check Lead Created Trigger',
+		name: 'statusCheckLeadCreatedTrigger',
 		icon: 'file:statuscheck.svg',
 		group: ['trigger'],
 		version: 1,
-		subtitle: 'Triggers when lead is updated',
-		description: 'Starts the workflow when a lead is updated (lead.updated event)',
+		subtitle: 'Triggers when new lead is created',
+		description: 'Starts the workflow when a new lead is created (lead.created event)',
 		defaults: {
-			name: 'Lead Updated Trigger',
+			name: 'Lead Created Trigger',
 		},
 		inputs: [],
-		outputs: ['main'],
+		outputs: [NodeConnectionTypes.Main],
 		credentials: [
 			{
 				name: 'statusCheckApi',
@@ -40,7 +41,7 @@ export class LeadUpdatedTrigger implements INodeType {
 				displayName: 'Webhook Name',
 				name: 'webhookName',
 				type: 'string',
-				default: 'n8n Lead Updated Webhook',
+				default: 'n8n Lead Created Webhook',
 				required: true,
 				description: 'Friendly name for this webhook in Status Check dashboard',
 			},
@@ -48,7 +49,7 @@ export class LeadUpdatedTrigger implements INodeType {
 				displayName: 'Description',
 				name: 'description',
 				type: 'string',
-				default: 'Sync lead updates to external systems',
+				default: 'Trigger workflows when new leads are created',
 				description: 'Optional description to identify this webhook',
 			},
 		],
@@ -81,8 +82,15 @@ export class LeadUpdatedTrigger implements INodeType {
 					}
 
 					return exists;
-				} catch (error) {
-					return false;
+				} catch (error: any) {
+					// 404 is expected if webhook does not exist
+					if (error.statusCode === 404 || error.response?.statusCode === 404) {
+						return false;
+					}
+					throw new NodeOperationError(
+						this.getNode(),
+						`Failed to check webhook existence: ${error.message}`
+					);
 				}
 			},
 
@@ -102,7 +110,7 @@ export class LeadUpdatedTrigger implements INodeType {
 							body: {
 								name: webhookName,
 								url: webhookUrl,
-								events: ['lead.updated'],
+								events: ['lead.created'],
 								description: description || undefined,
 								active: true,
 							},
@@ -143,8 +151,11 @@ export class LeadUpdatedTrigger implements INodeType {
 					delete webhookData.webhookUrl;
 
 					return true;
-				} catch (error) {
-					return false;
+				} catch (error: any) {
+					throw new NodeOperationError(
+						this.getNode(),
+						`Failed to delete webhook: ${error.message}`
+					);
 				}
 			},
 		},
@@ -162,7 +173,7 @@ export class LeadUpdatedTrigger implements INodeType {
 
 		// Extract event data from webhook payload
 		const eventData = bodyData.data || bodyData;
-		const eventType = bodyData.event || 'lead.updated';
+		const eventType = bodyData.event || 'lead.created';
 
 		// Ensure eventData is an object for spreading
 		const safeEventData: any = typeof eventData === 'object' && eventData !== null ? eventData : {};
@@ -177,7 +188,6 @@ export class LeadUpdatedTrigger implements INodeType {
 							leadId: safeEventData.leadId || safeEventData.lead_id || safeEventData.id,
 							email: safeEventData.email,
 							website: safeEventData.website,
-							updatedFields: safeEventData.updatedFields || safeEventData.updated_fields,
 							...safeEventData,
 						},
 					},

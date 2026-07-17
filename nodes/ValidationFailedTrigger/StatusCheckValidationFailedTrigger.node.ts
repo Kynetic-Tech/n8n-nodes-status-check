@@ -5,22 +5,23 @@ import {
 	INodeTypeDescription,
 	IWebhookResponseData,
 	NodeOperationError,
+	NodeConnectionTypes,
 } from 'n8n-workflow';
 
-export class ValidationStartedTrigger implements INodeType {
+export class StatusCheckValidationFailedTrigger implements INodeType {
 	description: INodeTypeDescription = {
-		displayName: 'Status Check Validation Started Trigger',
-		name: 'statusCheckValidationStartedTrigger',
+		displayName: 'Status Check Validation Failed Trigger',
+		name: 'statusCheckValidationFailedTrigger',
 		icon: 'file:statuscheck.svg',
 		group: ['trigger'],
 		version: 1,
-		subtitle: 'Triggers when validation begins',
-		description: 'Starts the workflow when a validation job begins (validation.started event)',
+		subtitle: 'Triggers when validation fails',
+		description: 'Starts the workflow when a validation job fails (validation.failed event)',
 		defaults: {
-			name: 'Validation Started Trigger',
+			name: 'Validation Failed Trigger',
 		},
 		inputs: [],
-		outputs: ['main'],
+		outputs: [NodeConnectionTypes.Main],
 		credentials: [
 			{
 				name: 'statusCheckApi',
@@ -40,7 +41,7 @@ export class ValidationStartedTrigger implements INodeType {
 				displayName: 'Webhook Name',
 				name: 'webhookName',
 				type: 'string',
-				default: 'n8n Validation Started Webhook',
+				default: 'n8n Validation Failed Alert',
 				required: true,
 				description: 'Friendly name for this webhook in Status Check dashboard',
 			},
@@ -48,7 +49,7 @@ export class ValidationStartedTrigger implements INodeType {
 				displayName: 'Description',
 				name: 'description',
 				type: 'string',
-				default: 'Track when validation jobs begin',
+				default: 'Alert when validation jobs fail',
 				description: 'Optional description to identify this webhook',
 			},
 		],
@@ -81,8 +82,15 @@ export class ValidationStartedTrigger implements INodeType {
 					}
 
 					return exists;
-				} catch (error) {
-					return false;
+				} catch (error: any) {
+					// 404 is expected if webhook does not exist
+					if (error.statusCode === 404 || error.response?.statusCode === 404) {
+						return false;
+					}
+					throw new NodeOperationError(
+						this.getNode(),
+						`Failed to check webhook existence: ${error.message}`
+					);
 				}
 			},
 
@@ -102,7 +110,7 @@ export class ValidationStartedTrigger implements INodeType {
 							body: {
 								name: webhookName,
 								url: webhookUrl,
-								events: ['validation.started'],
+								events: ['validation.failed'],
 								description: description || undefined,
 								active: true,
 							},
@@ -143,8 +151,11 @@ export class ValidationStartedTrigger implements INodeType {
 					delete webhookData.webhookUrl;
 
 					return true;
-				} catch (error) {
-					return false;
+				} catch (error: any) {
+					throw new NodeOperationError(
+						this.getNode(),
+						`Failed to delete webhook: ${error.message}`
+					);
 				}
 			},
 		},
@@ -162,12 +173,11 @@ export class ValidationStartedTrigger implements INodeType {
 
 		// Extract event data from webhook payload
 		const eventData = bodyData.data || bodyData;
-		const eventType = bodyData.event || 'validation.started';
+		const eventType = bodyData.event || 'validation.failed';
 
 		// Ensure eventData is an object for spreading
 		const safeEventData: any = typeof eventData === 'object' && eventData !== null ? eventData : {};
 
-		// Return webhook data to workflow
 		return {
 			workflowData: [
 				[
@@ -175,6 +185,7 @@ export class ValidationStartedTrigger implements INodeType {
 						json: {
 							event: eventType,
 							timestamp: bodyData.timestamp || new Date().toISOString(),
+							error: safeEventData.error,
 							jobId: safeEventData.jobId || safeEventData.job_id,
 							email: safeEventData.email,
 							website: safeEventData.website,

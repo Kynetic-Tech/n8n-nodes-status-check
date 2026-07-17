@@ -4,6 +4,9 @@ import {
 	INodeType,
 	INodeTypeDescription,
 	NodeOperationError,
+	NodeApiError,
+	NodeConnectionTypes,
+	JsonObject,
 } from 'n8n-workflow';
 
 import {
@@ -33,21 +36,14 @@ export class StatusCheck implements INodeType {
 		defaults: {
 			name: 'Status Check',
 		},
-		inputs: ['main'],
-		outputs: ['main'],
+		inputs: [NodeConnectionTypes.Main],
+		outputs: [NodeConnectionTypes.Main],
 		credentials: [
 			{
 				name: 'statusCheckApi',
 				required: true,
 			},
 		],
-		requestDefaults: {
-			baseURL: '={{$credentials.environment === "production" ? "https://api.status-check.io" : "http://localhost:8000"}}',
-			headers: {
-				Accept: 'application/json',
-				'Content-Type': 'application/json',
-			},
-		},
 		properties: [
 			{
 				displayName: 'Resource',
@@ -126,7 +122,7 @@ export class StatusCheck implements INodeType {
 							},
 						);
 
-						returnData.push({ json: response });
+						returnData.push({ json: response, pairedItem: { item: i } });
 					}
 
 					if (operation === 'checkEmail') {
@@ -155,7 +151,7 @@ export class StatusCheck implements INodeType {
 							},
 						);
 
-						returnData.push({ json: response });
+						returnData.push({ json: response, pairedItem: { item: i } });
 					}
 
 					if (operation === 'getJob') {
@@ -170,7 +166,7 @@ export class StatusCheck implements INodeType {
 							},
 						);
 
-						returnData.push({ json: response });
+						returnData.push({ json: response, pairedItem: { item: i } });
 					}
 				}
 
@@ -211,7 +207,7 @@ export class StatusCheck implements INodeType {
 							},
 						);
 
-						returnData.push({ json: response });
+						returnData.push({ json: response, pairedItem: { item: i } });
 					}
 
 					if (operation === 'get') {
@@ -226,7 +222,7 @@ export class StatusCheck implements INodeType {
 							},
 						);
 
-						returnData.push({ json: response });
+						returnData.push({ json: response, pairedItem: { item: i } });
 					}
 
 					if (operation === 'update') {
@@ -255,7 +251,7 @@ export class StatusCheck implements INodeType {
 							},
 						);
 
-						returnData.push({ json: response });
+						returnData.push({ json: response, pairedItem: { item: i } });
 					}
 
 					if (operation === 'list') {
@@ -293,9 +289,9 @@ export class StatusCheck implements INodeType {
 						const leads = response.leads || [];
 
 						if (returnAll) {
-							leads.forEach((lead: any) => returnData.push({ json: lead }));
+							leads.forEach((lead: any) => returnData.push({ json: lead, pairedItem: { item: i } }));
 						} else {
-							leads.forEach((lead: any) => returnData.push({ json: lead }));
+							leads.forEach((lead: any) => returnData.push({ json: lead, pairedItem: { item: i } }));
 						}
 					}
 
@@ -335,7 +331,7 @@ export class StatusCheck implements INodeType {
 							},
 						);
 
-						returnData.push({ json: response });
+						returnData.push({ json: response, pairedItem: { item: i } });
 					}
 
 				if (operation === 'validate') {
@@ -350,7 +346,7 @@ export class StatusCheck implements INodeType {
 						// Try parsing as JSON array first
 						leadIds = JSON.parse(leadIdsInput);
 						if (!Array.isArray(leadIds)) {
-							throw new Error('Not an array');
+							throw new NodeOperationError(this.getNode(), 'leadIds must be an array');
 						}
 					} catch (error) {
 						// Fall back to comma-separated string
@@ -384,7 +380,7 @@ export class StatusCheck implements INodeType {
 						},
 					);
 
-					returnData.push({ json: response });
+					returnData.push({ json: response, pairedItem: { item: i } });
 				}
 				}
 
@@ -415,7 +411,7 @@ export class StatusCheck implements INodeType {
 							},
 						);
 
-						returnData.push({ json: response });
+						returnData.push({ json: response, pairedItem: { item: i } });
 					}
 
 					if (operation === 'list') {
@@ -429,7 +425,7 @@ export class StatusCheck implements INodeType {
 						);
 
 						const webhooks = response.webhooks || [];
-						webhooks.forEach((webhook: any) => returnData.push({ json: webhook }));
+						webhooks.forEach((webhook: any) => returnData.push({ json: webhook, pairedItem: { item: i } }));
 					}
 
 					if (operation === 'delete') {
@@ -444,7 +440,7 @@ export class StatusCheck implements INodeType {
 							},
 						);
 
-						returnData.push({ json: response });
+						returnData.push({ json: response, pairedItem: { item: i } });
 					}
 
 					if (operation === 'test') {
@@ -463,16 +459,16 @@ export class StatusCheck implements INodeType {
 							},
 						);
 
-						returnData.push({ json: response });
+						returnData.push({ json: response, pairedItem: { item: i } });
 					}
 				}
 			} catch (error) {
 				if (this.continueOnFail()) {
 					const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-					returnData.push({ json: { error: errorMessage }, pairedItem: i });
+					returnData.push({ json: { error: errorMessage }, pairedItem: { item: i } });
 					continue;
 				}
-				throw error;
+				throw new NodeApiError(this.getNode(), error as JsonObject);
 			}
 		}
 

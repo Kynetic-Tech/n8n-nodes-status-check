@@ -9,6 +9,7 @@ export class StatusCheckApi implements ICredentialType {
 	name = 'statusCheckApi';
 	displayName = 'Status Check API';
 	documentationUrl = 'https://docs.status-check.io/integrations/n8n';
+	icon = 'file:statuscheck.svg' as const;
 	properties: INodeProperties[] = [
 		{
 			displayName: 'Environment',

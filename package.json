@@ -1,6 +1,6 @@
 {
   "name": "@status-check/n8n-nodes-status-check",
-  "version": "1.0.6",
+  "version": "1.1.0",
   "description": "n8n community node for Status Check - Domain and email validation for workflow automation",
   "keywords": [
     "n8n-community-node-package",
@@ -44,14 +44,14 @@
     ],
     "nodes": [
       "dist/nodes/StatusCheck/StatusCheck.node.js",
-      "dist/nodes/StatusCheckTrigger/ValidationStartedTrigger.node.js",
-      "dist/nodes/StatusCheckTrigger/ValidationCompleteTrigger.node.js",
-      "dist/nodes/StatusCheckTrigger/ValidationFailedTrigger.node.js",
-      "dist/nodes/StatusCheckTrigger/CreditsLowTrigger.node.js",
-      "dist/nodes/StatusCheckTrigger/CreditsDepletedTrigger.node.js",
-      "dist/nodes/StatusCheckTrigger/LeadCreatedTrigger.node.js",
-      "dist/nodes/StatusCheckTrigger/LeadUpdatedTrigger.node.js",
-      "dist/nodes/StatusCheckTrigger/LeadValidatedTrigger.node.js"
+      "dist/nodes/CreditsDepletedTrigger/StatusCheckCreditsDepletedTrigger.node.js",
+      "dist/nodes/CreditsLowTrigger/StatusCheckCreditsLowTrigger.node.js",
+      "dist/nodes/LeadCreatedTrigger/StatusCheckLeadCreatedTrigger.node.js",
+      "dist/nodes/LeadUpdatedTrigger/StatusCheckLeadUpdatedTrigger.node.js",
+      "dist/nodes/LeadValidatedTrigger/StatusCheckLeadValidatedTrigger.node.js",
+      "dist/nodes/ValidationCompleteTrigger/StatusCheckValidationCompleteTrigger.node.js",
+      "dist/nodes/ValidationFailedTrigger/StatusCheckValidationFailedTrigger.node.js",
+      "dist/nodes/ValidationStartedTrigger/StatusCheckValidationStartedTrigger.node.js"
     ]
   },
   "devDependencies": {
