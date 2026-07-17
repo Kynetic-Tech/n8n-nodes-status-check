@@ -5,22 +5,23 @@ import {
 	INodeTypeDescription,
 	IWebhookResponseData,
 	NodeOperationError,
+	NodeConnectionTypes,
 } from 'n8n-workflow';
 
-export class LeadValidatedTrigger implements INodeType {
+export class StatusCheckCreditsLowTrigger implements INodeType {
 	description: INodeTypeDescription = {
-		displayName: 'Status Check Lead Validated Trigger',
-		name: 'statusCheckLeadValidatedTrigger',
+		displayName: 'Status Check Credits Low Trigger',
+		name: 'statusCheckCreditsLowTrigger',
 		icon: 'file:statuscheck.svg',
 		group: ['trigger'],
 		version: 1,
-		subtitle: 'Triggers when lead validation completes',
-		description: 'Starts the workflow when a lead validation finishes (lead.validated event)',
+		subtitle: 'Triggers when credit balance is low',
+		description: 'Starts the workflow when your Status Check credits fall below threshold (credits.low event)',
 		defaults: {
-			name: 'Lead Validated Trigger',
+			name: 'Credits Low Trigger',
 		},
 		inputs: [],
-		outputs: ['main'],
+		outputs: [NodeConnectionTypes.Main],
 		credentials: [
 			{
 				name: 'statusCheckApi',
@@ -40,7 +41,7 @@ export class LeadValidatedTrigger implements INodeType {
 				displayName: 'Webhook Name',
 				name: 'webhookName',
 				type: 'string',
-				default: 'n8n Lead Validated Webhook',
+				default: 'n8n Credits Low Alert',
 				required: true,
 				description: 'Friendly name for this webhook in Status Check dashboard',
 			},
@@ -48,7 +49,7 @@ export class LeadValidatedTrigger implements INodeType {
 				displayName: 'Description',
 				name: 'description',
 				type: 'string',
-				default: 'Process validated leads and enrich data',
+				default: 'Alert when credits are running low',
 				description: 'Optional description to identify this webhook',
 			},
 		],
@@ -81,8 +82,15 @@ export class LeadValidatedTrigger implements INodeType {
 					}
 
 					return exists;
-				} catch (error) {
-					return false;
+				} catch (error: any) {
+					// 404 is expected if webhook does not exist
+					if (error.statusCode === 404 || error.response?.statusCode === 404) {
+						return false;
+					}
+					throw new NodeOperationError(
+						this.getNode(),
+						`Failed to check webhook existence: ${error.message}`
+					);
 				}
 			},
 
@@ -102,7 +110,7 @@ export class LeadValidatedTrigger implements INodeType {
 							body: {
 								name: webhookName,
 								url: webhookUrl,
-								events: ['lead.validated'],
+								events: ['credits.low'],
 								description: description || undefined,
 								active: true,
 							},
@@ -143,8 +151,11 @@ export class LeadValidatedTrigger implements INodeType {
 					delete webhookData.webhookUrl;
 
 					return true;
-				} catch (error) {
-					return false;
+				} catch (error: any) {
+					throw new NodeOperationError(
+						this.getNode(),
+						`Failed to delete webhook: ${error.message}`
+					);
 				}
 			},
 		},
@@ -162,7 +173,7 @@ export class LeadValidatedTrigger implements INodeType {
 
 		// Extract event data from webhook payload
 		const eventData = bodyData.data || bodyData;
-		const eventType = bodyData.event || 'lead.validated';
+		const eventType = bodyData.event || 'credits.low';
 
 		// Ensure eventData is an object for spreading
 		const safeEventData: any = typeof eventData === 'object' && eventData !== null ? eventData : {};
@@ -174,12 +185,9 @@ export class LeadValidatedTrigger implements INodeType {
 						json: {
 							event: eventType,
 							timestamp: bodyData.timestamp || new Date().toISOString(),
-							leadId: safeEventData.leadId || safeEventData.lead_id || safeEventData.id,
-							email: safeEventData.email,
-							website: safeEventData.website,
-							emailValid: safeEventData.emailValid || safeEventData.email_valid,
-							websiteStatus: safeEventData.websiteStatus || safeEventData.website_status,
-							validationStatus: safeEventData.validationStatus || safeEventData.validation_status,
+							creditsRemaining: safeEventData.creditsRemaining || safeEventData.credits_remaining,
+							threshold: safeEventData.threshold,
+							userId: safeEventData.userId || safeEventData.user_id,
 							...safeEventData,
 						},
 					},

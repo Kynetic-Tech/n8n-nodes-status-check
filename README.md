@@ -55,14 +55,18 @@ Automatically start workflows when events occur:
 3. Enter `@status-check/n8n-nodes-status-check`
 4. Click **Install**
 
-### Manual Installation
+### Manual Installation (Advanced)
+
+For self-hosted n8n installations (npm-based only):
 
 ```bash
-cd ~/.n8n/custom
+cd ~/.n8n
 npm install @status-check/n8n-nodes-status-check
 ```
 
 Then restart your n8n instance.
+
+**Note**: Manual installation is only supported for self-hosted npm installations. For Docker or n8n Cloud, use the Community Nodes UI method above.
 
 ## Prerequisites
 
@@ -444,10 +448,22 @@ n8n-nodes-status-check/
 │   │   │   ├── LeadDescription.ts       # Lead operations
 │   │   │   └── WebhookDescription.ts    # Webhook operations
 │   │   └── StatusCheck.node.ts          # Main node implementation
-│   └── StatusCheckTrigger/
-│       ├── ValidationCompleteTrigger.node.ts
-│       ├── ValidationFailedTrigger.node.ts
-│       └── CreditsLowTrigger.node.ts
+│   ├── ValidationCompleteTrigger/
+│   │   └── StatusCheckValidationCompleteTrigger.node.ts
+│   ├── ValidationFailedTrigger/
+│   │   └── StatusCheckValidationFailedTrigger.node.ts
+│   ├── ValidationStartedTrigger/
+│   │   └── StatusCheckValidationStartedTrigger.node.ts
+│   ├── CreditsLowTrigger/
+│   │   └── StatusCheckCreditsLowTrigger.node.ts
+│   ├── CreditsDepletedTrigger/
+│   │   └── StatusCheckCreditsDepletedTrigger.node.ts
+│   ├── LeadCreatedTrigger/
+│   │   └── StatusCheckLeadCreatedTrigger.node.ts
+│   ├── LeadUpdatedTrigger/
+│   │   └── StatusCheckLeadUpdatedTrigger.node.ts
+│   └── LeadValidatedTrigger/
+│       └── StatusCheckLeadValidatedTrigger.node.ts
 ├── package.json
 ├── tsconfig.json
 └── README.md
@@ -472,11 +488,22 @@ n8n-nodes-status-check/
 
 ## Version History
 
+### 1.1.0 (2025-01-16)
+
+n8n Community Review Fixes:
+- Added `pairedItem` to all output items for proper item linking in execution UI
+- Restructured trigger nodes into individual directories following n8n conventions
+- Improved error handling with proper `NodeApiError` and `NodeOperationError` usage
+- Fixed webhook lifecycle error handling (checkExists/delete methods)
+- Updated to use `NodeConnectionTypes.Main` constant instead of string literals
+- Added credential icon for better UI integration
+- Removed unused `requestDefaults` configuration
+
 ### 1.0.0 (2025-01-15)
 
 Initial release with:
 - Validation, Lead, and Webhook resources
 - 15+ operations across all resources
-- 3 webhook triggers for event-driven automation
+- 8 webhook triggers for event-driven automation
 - Full TypeScript implementation
 - Comprehensive error handling

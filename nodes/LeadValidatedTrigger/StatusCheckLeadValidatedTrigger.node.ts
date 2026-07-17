@@ -5,22 +5,23 @@ import {
 	INodeTypeDescription,
 	IWebhookResponseData,
 	NodeOperationError,
+	NodeConnectionTypes,
 } from 'n8n-workflow';
 
-export class ValidationFailedTrigger implements INodeType {
+export class StatusCheckLeadValidatedTrigger implements INodeType {
 	description: INodeTypeDescription = {
-		displayName: 'Status Check Validation Failed Trigger',
-		name: 'statusCheckValidationFailedTrigger',
+		displayName: 'Status Check Lead Validated Trigger',
+		name: 'statusCheckLeadValidatedTrigger',
 		icon: 'file:statuscheck.svg',
 		group: ['trigger'],
 		version: 1,
-		subtitle: 'Triggers when validation fails',
-		description: 'Starts the workflow when a validation job fails (validation.failed event)',
+		subtitle: 'Triggers when lead validation completes',
+		description: 'Starts the workflow when a lead validation finishes (lead.validated event)',
 		defaults: {
-			name: 'Validation Failed Trigger',
+			name: 'Lead Validated Trigger',
 		},
 		inputs: [],
-		outputs: ['main'],
+		outputs: [NodeConnectionTypes.Main],
 		credentials: [
 			{
 				name: 'statusCheckApi',
@@ -40,7 +41,7 @@ export class ValidationFailedTrigger implements INodeType {
 				displayName: 'Webhook Name',
 				name: 'webhookName',
 				type: 'string',
-				default: 'n8n Validation Failed Alert',
+				default: 'n8n Lead Validated Webhook',
 				required: true,
 				description: 'Friendly name for this webhook in Status Check dashboard',
 			},
@@ -48,7 +49,7 @@ export class ValidationFailedTrigger implements INodeType {
 				displayName: 'Description',
 				name: 'description',
 				type: 'string',
-				default: 'Alert when validation jobs fail',
+				default: 'Process validated leads and enrich data',
 				description: 'Optional description to identify this webhook',
 			},
 		],
@@ -81,8 +82,15 @@ export class ValidationFailedTrigger implements INodeType {
 					}
 
 					return exists;
-				} catch (error) {
-					return false;
+				} catch (error: any) {
+					// 404 is expected if webhook does not exist
+					if (error.statusCode === 404 || error.response?.statusCode === 404) {
+						return false;
+					}
+					throw new NodeOperationError(
+						this.getNode(),
+						`Failed to check webhook existence: ${error.message}`
+					);
 				}
 			},
 
@@ -102,7 +110,7 @@ export class ValidationFailedTrigger implements INodeType {
 							body: {
 								name: webhookName,
 								url: webhookUrl,
-								events: ['validation.failed'],
+								events: ['lead.validated'],
 								description: description || undefined,
 								active: true,
 							},
@@ -143,8 +151,11 @@ export class ValidationFailedTrigger implements INodeType {
 					delete webhookData.webhookUrl;
 
 					return true;
-				} catch (error) {
-					return false;
+				} catch (error: any) {
+					throw new NodeOperationError(
+						this.getNode(),
+						`Failed to delete webhook: ${error.message}`
+					);
 				}
 			},
 		},
@@ -162,7 +173,7 @@ export class ValidationFailedTrigger implements INodeType {
 
 		// Extract event data from webhook payload
 		const eventData = bodyData.data || bodyData;
-		const eventType = bodyData.event || 'validation.failed';
+		const eventType = bodyData.event || 'lead.validated';
 
 		// Ensure eventData is an object for spreading
 		const safeEventData: any = typeof eventData === 'object' && eventData !== null ? eventData : {};
@@ -174,10 +185,12 @@ export class ValidationFailedTrigger implements INodeType {
 						json: {
 							event: eventType,
 							timestamp: bodyData.timestamp || new Date().toISOString(),
-							error: safeEventData.error,
-							jobId: safeEventData.jobId || safeEventData.job_id,
+							leadId: safeEventData.leadId || safeEventData.lead_id || safeEventData.id,
 							email: safeEventData.email,
 							website: safeEventData.website,
+							emailValid: safeEventData.emailValid || safeEventData.email_valid,
+							websiteStatus: safeEventData.websiteStatus || safeEventData.website_status,
+							validationStatus: safeEventData.validationStatus || safeEventData.validation_status,
 							...safeEventData,
 						},
 					},

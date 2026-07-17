@@ -5,9 +5,10 @@ import {
 	INodeTypeDescription,
 	IWebhookResponseData,
 	NodeOperationError,
+	NodeConnectionTypes,
 } from 'n8n-workflow';
 
-export class ValidationCompleteTrigger implements INodeType {
+export class StatusCheckValidationCompleteTrigger implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'Status Check Validation Complete Trigger',
 		name: 'statusCheckValidationCompleteTrigger',
@@ -20,7 +21,7 @@ export class ValidationCompleteTrigger implements INodeType {
 			name: 'Validation Complete Trigger',
 		},
 		inputs: [],
-		outputs: ['main'],
+		outputs: [NodeConnectionTypes.Main],
 		credentials: [
 			{
 				name: 'statusCheckApi',
@@ -82,8 +83,15 @@ export class ValidationCompleteTrigger implements INodeType {
 					}
 
 					return exists;
-				} catch (error) {
-					return false;
+				} catch (error: any) {
+					// 404 is expected if webhook does not exist
+					if (error.statusCode === 404 || error.response?.statusCode === 404) {
+						return false;
+					}
+					throw new NodeOperationError(
+						this.getNode(),
+						`Failed to check webhook existence: ${error.message}`
+					);
 				}
 			},
 
@@ -144,8 +152,11 @@ export class ValidationCompleteTrigger implements INodeType {
 					delete webhookData.webhookUrl;
 
 					return true;
-				} catch (error) {
-					return false;
+				} catch (error: any) {
+					throw new NodeOperationError(
+						this.getNode(),
+						`Failed to delete webhook: ${error.message}`
+					);
 				}
 			},
 		},

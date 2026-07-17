@@ -5,22 +5,23 @@ import {
 	INodeTypeDescription,
 	IWebhookResponseData,
 	NodeOperationError,
+	NodeConnectionTypes,
 } from 'n8n-workflow';
 
-export class CreditsLowTrigger implements INodeType {
+export class StatusCheckValidationStartedTrigger implements INodeType {
 	description: INodeTypeDescription = {
-		displayName: 'Status Check Credits Low Trigger',
-		name: 'statusCheckCreditsLowTrigger',
+		displayName: 'Status Check Validation Started Trigger',
+		name: 'statusCheckValidationStartedTrigger',
 		icon: 'file:statuscheck.svg',
 		group: ['trigger'],
 		version: 1,
-		subtitle: 'Triggers when credit balance is low',
-		description: 'Starts the workflow when your Status Check credits fall below threshold (credits.low event)',
+		subtitle: 'Triggers when validation begins',
+		description: 'Starts the workflow when a validation job begins (validation.started event)',
 		defaults: {
-			name: 'Credits Low Trigger',
+			name: 'Validation Started Trigger',
 		},
 		inputs: [],
-		outputs: ['main'],
+		outputs: [NodeConnectionTypes.Main],
 		credentials: [
 			{
 				name: 'statusCheckApi',
@@ -40,7 +41,7 @@ export class CreditsLowTrigger implements INodeType {
 				displayName: 'Webhook Name',
 				name: 'webhookName',
 				type: 'string',
-				default: 'n8n Credits Low Alert',
+				default: 'n8n Validation Started Webhook',
 				required: true,
 				description: 'Friendly name for this webhook in Status Check dashboard',
 			},
@@ -48,7 +49,7 @@ export class CreditsLowTrigger implements INodeType {
 				displayName: 'Description',
 				name: 'description',
 				type: 'string',
-				default: 'Alert when credits are running low',
+				default: 'Track when validation jobs begin',
 				description: 'Optional description to identify this webhook',
 			},
 		],
@@ -81,8 +82,15 @@ export class CreditsLowTrigger implements INodeType {
 					}
 
 					return exists;
-				} catch (error) {
-					return false;
+				} catch (error: any) {
+					// 404 is expected if webhook does not exist
+					if (error.statusCode === 404 || error.response?.statusCode === 404) {
+						return false;
+					}
+					throw new NodeOperationError(
+						this.getNode(),
+						`Failed to check webhook existence: ${error.message}`
+					);
 				}
 			},
 
@@ -102,7 +110,7 @@ export class CreditsLowTrigger implements INodeType {
 							body: {
 								name: webhookName,
 								url: webhookUrl,
-								events: ['credits.low'],
+								events: ['validation.started'],
 								description: description || undefined,
 								active: true,
 							},
@@ -143,8 +151,11 @@ export class CreditsLowTrigger implements INodeType {
 					delete webhookData.webhookUrl;
 
 					return true;
-				} catch (error) {
-					return false;
+				} catch (error: any) {
+					throw new NodeOperationError(
+						this.getNode(),
+						`Failed to delete webhook: ${error.message}`
+					);
 				}
 			},
 		},
@@ -162,11 +173,12 @@ export class CreditsLowTrigger implements INodeType {
 
 		// Extract event data from webhook payload
 		const eventData = bodyData.data || bodyData;
-		const eventType = bodyData.event || 'credits.low';
+		const eventType = bodyData.event || 'validation.started';
 
 		// Ensure eventData is an object for spreading
 		const safeEventData: any = typeof eventData === 'object' && eventData !== null ? eventData : {};
 
+		// Return webhook data to workflow
 		return {
 			workflowData: [
 				[
@@ -174,9 +186,9 @@ export class CreditsLowTrigger implements INodeType {
 						json: {
 							event: eventType,
 							timestamp: bodyData.timestamp || new Date().toISOString(),
-							creditsRemaining: safeEventData.creditsRemaining || safeEventData.credits_remaining,
-							threshold: safeEventData.threshold,
-							userId: safeEventData.userId || safeEventData.user_id,
+							jobId: safeEventData.jobId || safeEventData.job_id,
+							email: safeEventData.email,
+							website: safeEventData.website,
 							...safeEventData,
 						},
 					},
