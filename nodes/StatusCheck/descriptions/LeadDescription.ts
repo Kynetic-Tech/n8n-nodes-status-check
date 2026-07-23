@@ -13,6 +13,12 @@ export const leadOperations: INodeProperties[] = [
 		},
 		options: [
 			{
+				name: 'Bulk Create',
+				value: 'bulkCreate',
+				description: 'Create multiple leads at once',
+				action: 'Bulk create leads',
+			},
+			{
 				name: 'Create',
 				value: 'create',
 				description: 'Create a new lead with optional validation',
@@ -25,6 +31,12 @@ export const leadOperations: INodeProperties[] = [
 				action: 'Get a lead',
 			},
 			{
+				name: 'List',
+				value: 'list',
+				description: 'List leads with optional filters',
+				action: 'List leads',
+			},
+			{
 				name: 'Update',
 				value: 'update',
 				description: 'Update lead information',
@@ -35,18 +47,6 @@ export const leadOperations: INodeProperties[] = [
 				value: 'validate',
 				description: 'Validate existing leads (domain and/or email)',
 				action: 'Validate leads',
-			},
-			{
-				name: 'List',
-				value: 'list',
-				description: 'List leads with optional filters',
-				action: 'List leads',
-			},
-			{
-				name: 'Bulk Create',
-				value: 'bulkCreate',
-				description: 'Create multiple leads at once',
-				action: 'Bulk create leads',
 			},
 		],
 		default: 'create',
@@ -100,46 +100,11 @@ export const leadFields: INodeProperties[] = [
 		},
 		options: [
 			{
-				displayName: 'First Name',
-				name: 'firstName',
-				type: 'string',
-				default: '',
-				description: 'Lead first name',
-			},
-			{
-				displayName: 'Last Name',
-				name: 'lastName',
-				type: 'string',
-				default: '',
-				description: 'Lead last name',
-			},
-			{
 				displayName: 'Company',
 				name: 'company',
 				type: 'string',
 				default: '',
 				description: 'Company name',
-			},
-			{
-				displayName: 'Job Title',
-				name: 'jobTitle',
-				type: 'string',
-				default: '',
-				description: 'Job title',
-			},
-			{
-				displayName: 'Phone',
-				name: 'phone',
-				type: 'string',
-				default: '',
-				description: 'Phone number',
-			},
-			{
-				displayName: 'LinkedIn URL',
-				name: 'linkedinUrl',
-				type: 'string',
-				default: '',
-				description: 'LinkedIn profile URL',
 			},
 			{
 				displayName: 'Custom Fields',
@@ -149,6 +114,41 @@ export const leadFields: INodeProperties[] = [
 				description: 'Custom fields as JSON object',
 			},
 			{
+				displayName: 'First Name',
+				name: 'firstName',
+				type: 'string',
+				default: '',
+				description: 'Lead first name',
+			},
+			{
+				displayName: 'Job Title',
+				name: 'jobTitle',
+				type: 'string',
+				default: '',
+				description: 'Job title',
+			},
+			{
+				displayName: 'Last Name',
+				name: 'lastName',
+				type: 'string',
+				default: '',
+				description: 'Lead last name',
+			},
+			{
+				displayName: 'LinkedIn URL',
+				name: 'linkedinUrl',
+				type: 'string',
+				default: '',
+				description: 'LinkedIn profile URL',
+			},
+			{
+				displayName: 'Phone',
+				name: 'phone',
+				type: 'string',
+				default: '',
+				description: 'Phone number',
+			},
+			{
 				displayName: 'Validate',
 				name: 'validate',
 				type: 'boolean',
@@ -156,6 +156,7 @@ export const leadFields: INodeProperties[] = [
 				description: 'Whether to trigger automatic validation after creating the lead (validates email always, website if provided)',
 			},
 		],
+
 	},
 
 	// =====================================
@@ -194,42 +195,11 @@ export const leadFields: INodeProperties[] = [
 		},
 		options: [
 			{
-				displayName: 'Email',
-				name: 'email',
-				type: 'string',
-				default: '',
-				description: 'New email address',
-			},
-			{
-				displayName: 'Website',
-				name: 'website',
-				type: 'string',
-				default: '',
-				description: 'New website URL',
-			},
-			{
-				displayName: 'First Name',
-				name: 'firstName',
-				type: 'string',
-				default: '',
-			},
-			{
-				displayName: 'Last Name',
-				name: 'lastName',
-				type: 'string',
-				default: '',
-			},
-			{
 				displayName: 'Company',
 				name: 'company',
 				type: 'string',
 				default: '',
-			},
-			{
-				displayName: 'Job Title',
-				name: 'jobTitle',
-				type: 'string',
-				default: '',
+				description: 'Company name',
 			},
 			{
 				displayName: 'Custom Fields',
@@ -239,13 +209,50 @@ export const leadFields: INodeProperties[] = [
 				description: 'Custom fields as JSON object',
 			},
 			{
+				displayName: 'Email',
+				name: 'email',
+				type: 'string',
+				default: '',
+				placeholder: 'name@email.com',
+				description: 'New email address',
+			},
+			{
+				displayName: 'First Name',
+				name: 'firstName',
+				type: 'string',
+				default: '',
+				description: 'Lead first name',
+			},
+			{
+				displayName: 'Job Title',
+				name: 'jobTitle',
+				type: 'string',
+				default: '',
+				description: 'Job title',
+			},
+			{
+				displayName: 'Last Name',
+				name: 'lastName',
+				type: 'string',
+				default: '',
+				description: 'Lead last name',
+			},
+			{
 				displayName: 'Revalidate',
 				name: 'revalidate',
 				type: 'boolean',
 				default: true,
 				description: 'Whether to automatically re-validate the lead if email or website changes',
 			},
+			{
+				displayName: 'Website',
+				name: 'website',
+				type: 'string',
+				default: '',
+				description: 'New website URL',
+			},
 		],
+
 	},
 
 	// =====================================
@@ -300,7 +307,7 @@ export const leadFields: INodeProperties[] = [
 				name: 'emailValid',
 				type: 'boolean',
 				default: true,
-				description: 'Filter by email validity',
+				description: 'Whether to filter by email validity',
 			},
 			{
 				displayName: 'Minimum Deliverability Rating',
@@ -318,11 +325,11 @@ export const leadFields: INodeProperties[] = [
 				name: 'validationStatus',
 				type: 'options',
 				options: [
-					{ name: 'Verified', value: 'verified' },
-					{ name: 'Warning', value: 'warning' },
-					{ name: 'Risky', value: 'risky' },
 					{ name: 'Invalid', value: 'invalid' },
 					{ name: 'Pending', value: 'pending' },
+					{ name: 'Risky', value: 'risky' },
+					{ name: 'Verified', value: 'verified' },
+					{ name: 'Warning', value: 'warning' },
 				],
 				default: 'verified',
 				description: 'Filter by validation status',
@@ -345,7 +352,7 @@ export const leadFields: INodeProperties[] = [
 			},
 		},
 		default: '[]',
-		description: 'Array of lead objects to create. Example: [{"email": "user@example.com", "website": "example.com"}]',
+		description: 'Array of lead objects to create. Example: [{"email": "user@example.com", "website": "example.com"}].',
 		placeholder: '[{"email": "user1@example.com"}, {"email": "user2@example.com"}]',
 	},
 	{

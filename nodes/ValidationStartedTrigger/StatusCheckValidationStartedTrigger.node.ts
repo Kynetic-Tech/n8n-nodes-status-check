@@ -15,7 +15,7 @@ export class StatusCheckValidationStartedTrigger implements INodeType {
 		icon: 'file:statuscheck.svg',
 		group: ['trigger'],
 		version: 1,
-		subtitle: 'Triggers when validation begins',
+		usableAsTool: true,		subtitle: 'Triggers when validation begins',
 		description: 'Starts the workflow when a validation job begins (validation.started event)',
 		defaults: {
 			name: 'Validation Started Trigger',

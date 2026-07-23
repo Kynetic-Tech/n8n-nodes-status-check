@@ -15,7 +15,7 @@ export class StatusCheckLeadUpdatedTrigger implements INodeType {
 		icon: 'file:statuscheck.svg',
 		group: ['trigger'],
 		version: 1,
-		subtitle: 'Triggers when lead is updated',
+		usableAsTool: true,		subtitle: 'Triggers when lead is updated',
 		description: 'Starts the workflow when a lead is updated (lead.updated event)',
 		defaults: {
 			name: 'Lead Updated Trigger',

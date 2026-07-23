@@ -31,6 +31,7 @@ export class StatusCheck implements INodeType {
 		icon: 'file:statuscheck.svg',
 		group: ['transform'],
 		version: 1,
+		usableAsTool: true,
 		subtitle: '={{$parameter["resource"] ? ($parameter["operation"] + ": " + $parameter["resource"]) : "Domain & email validation"}}',
 		description: 'Validate domains and emails, manage leads with Status Check',
 		defaults: {
@@ -52,14 +53,14 @@ export class StatusCheck implements INodeType {
 				noDataExpression: true,
 				options: [
 					{
-						name: 'Validation',
-						value: 'validation',
-						description: 'Validate websites and emails without creating leads',
-					},
-					{
 						name: 'Lead',
 						value: 'lead',
 						description: 'Manage leads with validation',
+					},
+					{
+						name: 'Validation',
+						value: 'validation',
+						description: 'Validate websites and emails without creating leads',
 					},
 					{
 						name: 'Webhook',
@@ -96,7 +97,7 @@ export class StatusCheck implements INodeType {
 
 		// If no input items, create a single empty item to allow execution
 		if (items.length === 0) {
-			items = [{ json: {} }];
+			items = [{ json: {}, pairedItem: { item: 0 } }];
 		}
 
 		for (let i = 0; i < items.length; i++) {
@@ -193,6 +194,7 @@ export class StatusCheck implements INodeType {
 								throw new NodeOperationError(
 									this.getNode(),
 									'customFields must be valid JSON',
+				{ itemIndex: i }
 								);
 							}
 						}
@@ -237,6 +239,7 @@ export class StatusCheck implements INodeType {
 								throw new NodeOperationError(
 									this.getNode(),
 									'customFields must be valid JSON',
+				{ itemIndex: i }
 								);
 							}
 						}
@@ -306,14 +309,16 @@ export class StatusCheck implements INodeType {
 							throw new NodeOperationError(
 								this.getNode(),
 								'Leads must be valid JSON array',
-							);
+					{ itemIndex: i }
+				);
 						}
 
 						if (!Array.isArray(leads)) {
 							throw new NodeOperationError(
 								this.getNode(),
 								'Leads must be an array',
-							);
+					{ itemIndex: i }
+				);
 						}
 
 						const body: any = {
@@ -346,7 +351,7 @@ export class StatusCheck implements INodeType {
 						// Try parsing as JSON array first
 						leadIds = JSON.parse(leadIdsInput);
 						if (!Array.isArray(leadIds)) {
-							throw new NodeOperationError(this.getNode(), 'leadIds must be an array');
+							throw new NodeOperationError(this.getNode(), 'leadIds must be an array', { itemIndex: i });
 						}
 					} catch (error) {
 						// Fall back to comma-separated string
@@ -357,7 +362,8 @@ export class StatusCheck implements INodeType {
 						throw new NodeOperationError(
 							this.getNode(),
 							'At least one lead ID is required',
-						);
+					{ itemIndex: i }
+				);
 					}
 
 					const body: any = {
@@ -468,7 +474,7 @@ export class StatusCheck implements INodeType {
 					returnData.push({ json: { error: errorMessage }, pairedItem: { item: i } });
 					continue;
 				}
-				throw new NodeApiError(this.getNode(), error as JsonObject);
+				throw new NodeApiError(this.getNode(), error as JsonObject, { itemIndex: i });
 			}
 		}
 

@@ -15,7 +15,7 @@ export class StatusCheckLeadValidatedTrigger implements INodeType {
 		icon: 'file:statuscheck.svg',
 		group: ['trigger'],
 		version: 1,
-		subtitle: 'Triggers when lead validation completes',
+		usableAsTool: true,		subtitle: 'Triggers when lead validation completes',
 		description: 'Starts the workflow when a lead validation finishes (lead.validated event)',
 		defaults: {
 			name: 'Lead Validated Trigger',

@@ -1,6 +1,6 @@
 {
   "name": "@status-check/n8n-nodes-status-check",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "n8n community node for Status Check - Domain and email validation for workflow automation",
   "keywords": [
     "n8n-community-node-package",
