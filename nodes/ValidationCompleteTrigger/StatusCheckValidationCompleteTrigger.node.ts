@@ -15,7 +15,7 @@ export class StatusCheckValidationCompleteTrigger implements INodeType {
 		icon: 'file:statuscheck.svg',
 		group: ['trigger'],
 		version: 1,
-		subtitle: 'Triggers when email or domain validation completes',
+		usableAsTool: true,		subtitle: 'Triggers when email or domain validation completes',
 		description: 'Starts the workflow when a validation job finishes (validation.complete event)',
 		defaults: {
 			name: 'Validation Complete Trigger',

@@ -15,7 +15,7 @@ export class StatusCheckLeadCreatedTrigger implements INodeType {
 		icon: 'file:statuscheck.svg',
 		group: ['trigger'],
 		version: 1,
-		subtitle: 'Triggers when new lead is created',
+		usableAsTool: true,		subtitle: 'Triggers when new lead is created',
 		description: 'Starts the workflow when a new lead is created (lead.created event)',
 		defaults: {
 			name: 'Lead Created Trigger',

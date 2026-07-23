@@ -15,7 +15,7 @@ export class StatusCheckCreditsDepletedTrigger implements INodeType {
 		icon: 'file:statuscheck.svg',
 		group: ['trigger'],
 		version: 1,
-		subtitle: 'Triggers when credits are exhausted',
+		usableAsTool: true,		subtitle: 'Triggers when credits are exhausted',
 		description: 'Starts the workflow when your Status Check credits reach zero (credits.depleted event)',
 		defaults: {
 			name: 'Credits Depleted Trigger',

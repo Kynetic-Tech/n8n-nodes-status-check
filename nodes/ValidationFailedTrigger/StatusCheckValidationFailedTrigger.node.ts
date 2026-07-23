@@ -15,7 +15,7 @@ export class StatusCheckValidationFailedTrigger implements INodeType {
 		icon: 'file:statuscheck.svg',
 		group: ['trigger'],
 		version: 1,
-		subtitle: 'Triggers when validation fails',
+		usableAsTool: true,		subtitle: 'Triggers when validation fails',
 		description: 'Starts the workflow when a validation job fails (validation.failed event)',
 		defaults: {
 			name: 'Validation Failed Trigger',

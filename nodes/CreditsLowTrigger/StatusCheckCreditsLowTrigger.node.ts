@@ -15,7 +15,7 @@ export class StatusCheckCreditsLowTrigger implements INodeType {
 		icon: 'file:statuscheck.svg',
 		group: ['trigger'],
 		version: 1,
-		subtitle: 'Triggers when credit balance is low',
+		usableAsTool: true,		subtitle: 'Triggers when credit balance is low',
 		description: 'Starts the workflow when your Status Check credits fall below threshold (credits.low event)',
 		defaults: {
 			name: 'Credits Low Trigger',
