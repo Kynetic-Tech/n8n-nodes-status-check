@@ -88,24 +88,12 @@ export const webhookFields: INodeProperties[] = [
 		},
 		options: [
 			{
-				name: 'Validation Started',
-				value: 'validation.started',
-			},
-			{
-				name: 'Validation Complete',
-				value: 'validation.complete',
-			},
-			{
-				name: 'Validation Failed',
-				value: 'validation.failed',
+				name: 'Credits Depleted',
+				value: 'credits.depleted',
 			},
 			{
 				name: 'Credits Low',
 				value: 'credits.low',
-			},
-			{
-				name: 'Credits Depleted',
-				value: 'credits.depleted',
 			},
 			{
 				name: 'Lead Created',
@@ -118,6 +106,18 @@ export const webhookFields: INodeProperties[] = [
 			{
 				name: 'Lead Validated',
 				value: 'lead.validated',
+			},
+			{
+				name: 'Validation Complete',
+				value: 'validation.complete',
+			},
+			{
+				name: 'Validation Failed',
+				value: 'validation.failed',
+			},
+			{
+				name: 'Validation Started',
+				value: 'validation.started',
 			},
 		],
 		default: ['validation.complete'],
