@@ -125,7 +125,6 @@ export const leadFields: INodeProperties[] = [
 				name: 'jobTitle',
 				type: 'string',
 				default: '',
-				description: 'Job title',
 			},
 			{
 				displayName: 'Last Name',
@@ -228,7 +227,6 @@ export const leadFields: INodeProperties[] = [
 				name: 'jobTitle',
 				type: 'string',
 				default: '',
-				description: 'Job title',
 			},
 			{
 				displayName: 'Last Name',
